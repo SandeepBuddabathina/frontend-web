@@ -1,67 +1,86 @@
-<div class="flex flex-col h-screen bg-white text-gray-900">
-    <!-- Header -->
-    <div class="flex justify-between items-center p-4 bg-gray-100 shadow-lg">
-      <h2 class="text-lg font-bold">Video Call</h2>
-      <button (click)="copyMeetingLink()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">
+<div class="flex flex-col h-screen text-black bg-white">
+  <!-- Header -->
+  <div class="flex items-center justify-between p-4 bg-gray-100 shadow-md">
+    <h2 class="text-xl font-semibold">Video Call</h2>
+    <div class="flex space-x-4">
+      <button (click)="toggleParticipants()" class="px-4 py-2 text-white transition-all duration-300 ease-in-out rounded-lg shadow-md bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-indigo-600 hover:to-blue-500">
+        Participants
+      </button>
+      <button (click)="copyMeetingLink()" class="px-4 py-2 text-white transition-all duration-300 ease-in-out rounded-lg shadow-md bg-gradient-to-r from-green-500 to-teal-600 hover:from-teal-600 hover:to-green-500">
         Get Link
       </button>
     </div>
-  
-    <div class="flex flex-1 overflow-hidden">
-      <!-- Video Grid (LEFT) -->
-      <div class="flex-1 p-4 overflow-y-auto">
-        <div class="grid grid-cols-3 gap-4">
-          <!-- Local Video -->
-          <div class="relative bg-gray-200 p-2 rounded-lg">
-            <h3 class="absolute top-1 left-1 text-xs bg-gray-700 text-white px-2 py-1 rounded">You</h3>
-            <video #localVideo autoplay playsinline class="w-full h-40 border rounded-lg"></video>
+  </div>
+
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Video Grid (LEFT) -->
+    <div class="flex-1 p-4 overflow-y-auto transition-all duration-300 ease-in-out"
+         [ngClass]="{ 'lg:w-3/4': showParticipants, 'w-full': !showParticipants }">
+      <div class="grid grid-cols-5 gap-4">
+        <!-- Local Video -->
+        <div class="relative p-2 bg-gray-100 rounded-lg">
+          <h3 class="absolute px-2 py-1 text-xs text-black bg-gray-300 rounded top-1 left-1">You</h3>
+          <video #localVideo autoplay playsinline class="w-full h-40 rounded-lg"></video>
+          <!-- Connection Status -->
+          <div class="absolute text-sm text-gray-700 bottom-2 left-2">
+            <div class="flex items-center space-x-1">
+              <div [ngClass]="getConnectionStatusClass('localUser')" class="w-3 h-3 rounded-full"></div>
+              <div>{{ connectionStatus }}</div>
+            </div>
           </div>
-  
-          <!-- Remote Videos -->
-          <div *ngFor="let userId of getRemoteStreamKeys()" class="relative bg-gray-200 p-2 rounded-lg">
-            <h3 class="absolute top-1 left-1 text-xs bg-gray-700 text-white px-2 py-1 rounded">
-              {{ userId }}
-            </h3>
-            <video
-              [srcObject]="remoteStreams[userId]"
-              autoplay
-              playsinline
-              class="w-full h-40 border rounded-lg"
-            ></video>
+        </div>
+
+        <!-- Remote Videos -->
+        <div *ngFor="let userId of getRemoteStreamKeys()" class="relative p-2 bg-gray-100 rounded-lg">
+          <h3 class="absolute px-2 py-1 text-xs text-black bg-gray-300 rounded top-1 left-1">
+            {{ userId }}
+          </h3>
+          <video
+            [srcObject]="remoteStreams[userId]"
+            autoplay
+            playsinline
+            class="w-full h-40 rounded-lg"
+          ></video>
+          <!-- Connection Status -->
+          <div class="absolute text-sm text-gray-700 bottom-2 left-2">
+            <div class="flex items-center space-x-1">
+              <div [ngClass]="getConnectionStatusClass(userId)" class="w-3 h-3 rounded-full"></div>
+              <div>{{ getConnectionStatus(userId) }}</div>
+            </div>
           </div>
         </div>
       </div>
-  
-      <!-- Participant List (RIGHT) -->
-      <div class="w-1/4 p-4 bg-gray-100 overflow-y-auto border-l border-gray-300">
-        <h3 class="text-lg font-bold mb-3">Participants</h3>
-        <input
-          [(ngModel)]="searchQuery"
-          placeholder="Search Participants..."
-          class="w-full p-2 mb-2 border rounded-lg text-black"
-        />
-        <ul class="space-y-2">
-          <li *ngFor="let user of filteredParticipants()" class="p-2 bg-gray-200 rounded-lg flex items-center">
-            <span class="mr-2">👤</span> {{ user }}
-          </li>
-        </ul>
-      </div>
     </div>
-  
-    <!-- Floating Controls -->
-    <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-100 p-3 rounded-lg flex space-x-4">
-      <button (click)="toggleVideo()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">
-        {{ videoEnabled ? '📹 Stop Video' : '🎥 Start Video' }}
-      </button>
-      <button (click)="toggleAudio()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">
-        {{ audioEnabled ? '🔇 Mute' : '🎤 Unmute' }}
-      </button>
-      <button (click)="shareScreen()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">
-        🖥️ Share Screen
-      </button>
-      <button (click)="leaveMeeting()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">
-        🚪 Leave Meeting
-      </button>
+
+    <!-- Participant List (RIGHT) -->
+    <div *ngIf="showParticipants" class="w-1/4 p-4 overflow-y-auto transition-all duration-300 ease-in-out bg-gray-100 border-l border-gray-300">
+      <h3 class="mb-3 text-lg font-bold text-black">Participants</h3>
+      <input
+        [(ngModel)]="searchQuery"
+        placeholder="Search Participants..."
+        class="w-full p-2 mb-2 text-black bg-gray-200 border rounded-lg"
+      />
+      <ul class="space-y-2">
+        <li *ngFor="let user of filteredParticipants()" class="flex items-center p-2 bg-gray-200 rounded-lg">
+          <span class="mr-2"></span> {{ user }}
+        </li>
+      </ul>
     </div>
   </div>
-  
+
+  <!-- Floating Controls -->
+  <div class="fixed flex p-3 space-x-4 transform -translate-x-1/2 bg-gray-100 rounded-lg bottom-4 left-1/2">
+    <button (click)="toggleVideo()" class="px-4 py-2 text-white transition-all duration-300 ease-in-out rounded-lg shadow-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-600">
+      {{ videoEnabled ? 'Stop Video' : 'Start Video' }}
+    </button>
+    <button (click)="toggleAudio()" class="px-4 py-2 text-white transition-all duration-300 ease-in-out rounded-lg shadow-lg bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-500">
+      {{ audioEnabled ? 'Mute' : 'Unmute' }}
+    </button>
+    <button (click)="shareScreen()" class="px-4 py-2 text-white transition-all duration-300 ease-in-out rounded-lg shadow-lg bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-500">
+      Share Screen
+    </button>
+    <button (click)="leaveMeeting()" class="px-4 py-2 text-white transition-all duration-300 ease-in-out rounded-lg shadow-lg bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-600">
+      Leave Meeting
+    </button>
+  </div>
+</div>

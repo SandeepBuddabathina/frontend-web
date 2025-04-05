@@ -2,3 +2,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+
+.signal-status {
+    background-color: rgba(0, 0, 0, 0.5); /* Light black background */
+    color: white; /* White text */
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+  }
+  
+  .signal-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    background-color: transparent; /* Transparent background for dot */
+    border: 2px solid #fff; /* White border */
+  }
+  
